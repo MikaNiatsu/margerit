@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
-import { AlertCircle, CheckCircle2, XCircle, FileText, BarChart2, ShieldCheck, History, Download, X, Lock, Eye, Key, Clock, Database, Server, Code, Users, HelpCircle, FileIcon as FilePdf, PieChartIcon, ChevronDown } from 'lucide-react'
+import { AlertCircle, CheckCircle2, XCircle, FileText, BarChart2, ShieldCheck, History, X, Lock, Eye, Key, Clock, Database, Server, Code, Users, HelpCircle, FileIcon as FilePdf, PieChartIcon, } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import {
   Tooltip as UITooltip,
