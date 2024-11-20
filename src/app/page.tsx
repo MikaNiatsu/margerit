@@ -18,7 +18,7 @@ import "jspdf-autotable"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { fetchAssets, fetchThreats, fetchAssessments, addAsset as addAssetDB, addThreat as addThreatDB, addAssessment as addAssessmentDB } from "@/app/actions/fetch"
-
+import { logoutUser } from "@/app/actions/userActions"
 type Asset = {
   id: number
   code: string
@@ -62,6 +62,12 @@ type Notification = {
 }
 
 export default function MAGERITAssessment() {
+  const logoutHandler = async () => {
+    const result = await logoutUser()
+    if (result.success) {
+      window.location.reload()
+    }
+  }
   const [assets, setAssets] = useState<Asset[]>([])
   const [threats, setThreats] = useState<Threat[]>([])
   const [assessments, setAssessments] = useState<Assessment[]>([])
@@ -98,7 +104,6 @@ export default function MAGERITAssessment() {
     { value: "assessment", label: "Evaluación", icon: BarChart2, description: "Análisis y evaluación de riesgos" },
     { value: "reports", label: "Informes", icon: FileText, description: "Reportes y documentación" },
     { value: "charts", label: "Gráficos", icon: PieChartIcon, description: "Visualización de datos" },
-    { value: "history", label: "Historial", icon: History, description: "Registro de actividades" },
   ]
 
   const assetTypes = [
@@ -341,6 +346,7 @@ export default function MAGERITAssessment() {
           setAssets(assetsResponse.assets as Asset[])
           setAssessments(assessmentsResponse.assessments as Assessment[])
           setThreats(threatsResponse.threats as Threat[])
+          console.log(assetsResponse, threatsResponse, assessmentsResponse)
         } else {
           addNotification(assetsResponse.error || threatsResponse.error || assessmentsResponse.error || "Failed to load data", "error")
         }
@@ -358,6 +364,11 @@ export default function MAGERITAssessment() {
       <TooltipProvider>
         <header className="bg-primary text-primary-foreground p-4 shadow-md">
           <h1 className="text-3xl font-bold text-center">Herramienta de Evaluación de Riesgos MAGERIT</h1>
+          <div className="absolute top-0 right-0 p-2">
+            <Button variant="destructive" size="sm" onClick={logoutHandler}>
+              Cerrar sesión
+            </Button>
+          </div>
         </header>
 
         <main className="flex-grow container mx-auto p-4 relative">

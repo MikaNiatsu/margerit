@@ -26,7 +26,7 @@ export async function loginUser(email: string, password: string) {
         // Create JWT token using jose
         const token = await new SignJWT({ userId: user.id })
           .setProtectedHeader({ alg: "HS256" })
-          .setExpirationTime("1h")
+          .setExpirationTime("1d")
           .setIssuedAt()
           .sign(secret);
 
@@ -96,7 +96,7 @@ export async function registerUser(
     // Create JWT token using jose
     const token = await new SignJWT({ userId: newUser.id })
       .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("1h")
+      .setExpirationTime("1d")
       .setIssuedAt()
       .sign(secret);
 
@@ -121,9 +121,12 @@ export async function registerUser(
   }
 }
 
+
 export async function logoutUser() {
   const cookie = await cookies();
   cookie.delete("auth_token");
+
+  // Redirect the user to the login page
 
   return {
     success: true,

@@ -79,19 +79,26 @@ export async function fetchThreats() {
 
   try {
     const threats = await sql`
-            SELECT 
-                id, 
-                code, 
-                name, 
-                "group", 
-                frequency, 
-                frequency_value, 
-                affected_dimensions, 
-                affected_types, 
-                created_at
-            FROM threats
-        `;
-    return { success: true, threats };
+              SELECT 
+                  id, 
+                  code, 
+                  name, 
+                  "group", 
+                  frequency, 
+                  frequency_value, 
+                  affected_dimensions, 
+                  affected_types, 
+                  created_at
+              FROM threats
+          `;
+    return {
+      success: true,
+      threats: threats.map((threat) => ({
+        ...threat,
+        affectedDimensions: threat.affected_dimensions,
+        affectedTypes: threat.affected_types,
+      })),
+    };
   } catch (error) {
     console.error("Error fetching threats:", error);
     return { success: false, error: "Failed to fetch threats" };
@@ -204,4 +211,3 @@ export async function addAssessment(assessment: {
     return { success: false, error: "Failed to add assessment" };
   }
 }
-
