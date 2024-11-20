@@ -1,34 +1,23 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Slider } from "@/components/ui/slider"
-import { AlertCircle, CheckCircle2, XCircle, FileText, BarChart2, ShieldCheck, History, X, Lock, Eye, Key, Clock, Database, Server, Code, Users, HelpCircle, FileIcon as FilePdf, PieChartIcon, } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import {
-  Tooltip as UITooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-
+import { AlertCircle, CheckCircle2, XCircle, FileText, BarChart2, ShieldCheck, History, X, Lock, Eye, Key, Clock, Database, Server, Code, Users, HelpCircle, FileIcon as FilePdf, PieChartIcon } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import jsPDF from "jspdf"
+import "jspdf-autotable"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { fetchAssets, fetchThreats, fetchAssessments, addAsset as addAssetDB, addThreat as addThreatDB, addAssessment as addAssessmentDB } from "@/app/actions/fetch"
 
 type Asset = {
   id: number
@@ -69,60 +58,62 @@ type Assessment = {
 type Notification = {
   id: number
   message: string
-  type: 'success' | 'error' | 'info'
+  type: "success" | "error" | "info"
 }
 
 export default function MAGERITAssessment() {
-  const menuItems = [
-    { value: 'assets', label: 'Activos', icon: ShieldCheck, description: 'Gestionar activos y recursos' },
-    { value: 'threats', label: 'Amenazas', icon: AlertCircle, description: 'Identificar amenazas potenciales' },
-    { value: 'assessment', label: 'Evaluación', icon: BarChart2, description: 'Análisis y evaluación de riesgos' },
-    { value: 'reports', label: 'Informes', icon: FileText, description: 'Reportes y documentación' },
-    { value: 'charts', label: 'Gráficos', icon: PieChartIcon, description: 'Visualización de datos' },
-    { value: 'history', label: 'Historial', icon: History, description: 'Registro de actividades' },
-  ];
   const [assets, setAssets] = useState<Asset[]>([])
   const [threats, setThreats] = useState<Threat[]>([])
   const [assessments, setAssessments] = useState<Assessment[]>([])
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [newAsset, setNewAsset] = useState({
-    code: '',
-    name: '',
-    type: '',
+    code: "",
+    name: "",
+    type: "",
     value: 100000,
     authenticity: 0,
     confidentiality: 0,
     integrity: 0,
     availability: 0,
-    traceability: 0
+    traceability: 0,
   })
   const [newThreat, setNewThreat] = useState({
-    code: '',
-    name: '',
-    group: '',
-    frequency: '',
+    code: "",
+    name: "",
+    group: "",
+    frequency: "",
     frequencyValue: 0,
     affectedDimensions: [] as string[],
-    affectedTypes: [] as string[]
+    affectedTypes: [] as string[],
   })
-  const [selectedAsset, setSelectedAsset] = useState<string>('')
-  const [selectedThreat, setSelectedThreat] = useState<string>('')
-  const [selectedImpact, setSelectedImpact] = useState<string>('')
+  const [selectedAsset, setSelectedAsset] = useState<string>("")
+  const [selectedThreat, setSelectedThreat] = useState<string>("")
+  const [selectedImpact, setSelectedImpact] = useState<string>("")
   const [controlEffectiveness, setControlEffectiveness] = useState<number>(0)
+  const [selectedTab, setSelectedTab] = useState("assets")
+
+  const menuItems = [
+    { value: "assets", label: "Activos", icon: ShieldCheck, description: "Gestionar activos y recursos" },
+    { value: "threats", label: "Amenazas", icon: AlertCircle, description: "Identificar amenazas potenciales" },
+    { value: "assessment", label: "Evaluación", icon: BarChart2, description: "Análisis y evaluación de riesgos" },
+    { value: "reports", label: "Informes", icon: FileText, description: "Reportes y documentación" },
+    { value: "charts", label: "Gráficos", icon: PieChartIcon, description: "Visualización de datos" },
+    { value: "history", label: "Historial", icon: History, description: "Registro de actividades" },
+  ]
 
   const assetTypes = [
     { value: "hardware", label: "Hardware" },
     { value: "software", label: "Software" },
     { value: "datos", label: "Datos" },
     { value: "servicios", label: "Servicios" },
-    { value: "personal", label: "Personal" }
+    { value: "personal", label: "Personal" },
   ]
 
   const threatGroups = [
     { value: "natural", label: "Desastres naturales" },
     { value: "industrial", label: "Origen industrial" },
     { value: "error", label: "Errores y fallos no intencionados" },
-    { value: "ataque", label: "Ataques intencionados" }
+    { value: "ataque", label: "Ataques intencionados" },
   ]
 
   const frequencies = [
@@ -130,7 +121,7 @@ export default function MAGERITAssessment() {
     { value: "FA", label: "Alta", numericValue: 0.071 },
     { value: "FM", label: "Media", numericValue: 0.016 },
     { value: "FB", label: "Baja", numericValue: 0.0016 },
-    { value: "FMB", label: "Muy Baja", numericValue: 0.00016 }
+    { value: "FMB", label: "Muy Baja", numericValue: 0.00016 },
   ]
 
   const impactLevels = [
@@ -138,7 +129,7 @@ export default function MAGERITAssessment() {
     { value: "A", label: "Alto", percentage: 75 },
     { value: "M", label: "Medio", percentage: 50 },
     { value: "B", label: "Bajo", percentage: 25 },
-    { value: "MB", label: "Muy Bajo", percentage: 10 }
+    { value: "MB", label: "Muy Bajo", percentage: 10 },
   ]
 
   const dimensionInfo = {
@@ -146,91 +137,115 @@ export default function MAGERITAssessment() {
     C: { icon: <Lock className="w-4 h-4" />, label: "Confidencialidad", description: "Propiedad o característica consistente en que la información ni se pone a disposición, ni se revela a individuos, entidades o procesos no autorizados" },
     I: { icon: <ShieldCheck className="w-4 h-4" />, label: "Integridad", description: "Propiedad o característica consistente en que el activo de información no ha sido alterado de manera no autorizada" },
     D: { icon: <Clock className="w-4 h-4" />, label: "Disponibilidad", description: "Propiedad o característica de los activos consistente en que las entidades o procesos autorizados tienen acceso a los mismos cuando lo requieren" },
-    T: { icon: <Eye className="w-4 h-4" />, label: "Trazabilidad", description: "Propiedad o característica consistente en que las actuaciones de una entidad pueden ser imputadas exclusivamente a dicha entidad" }
+    T: { icon: <Eye className="w-4 h-4" />, label: "Trazabilidad", description: "Propiedad o característica consistente en que las actuaciones de una entidad pueden ser imputadas exclusivamente a dicha entidad" },
   }
 
   const assetTypeInfo = {
     H: { icon: <Server className="w-4 h-4" />, label: "Hardware", description: "Activos físicos, equipamiento informático" },
     S: { icon: <Code className="w-4 h-4" />, label: "Software", description: "Aplicaciones, sistemas operativos" },
     D: { icon: <Database className="w-4 h-4" />, label: "Datos", description: "Información almacenada" },
-    P: { icon: <Users className="w-4 h-4" />, label: "Personal", description: "Usuarios, operadores y administradores del sistema" }
+    P: { icon: <Users className="w-4 h-4" />, label: "Personal", description: "Usuarios, operadores y administradores del sistema" },
   }
-  const [selectedTab, setSelectedTab] = useState('assets');
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(value)
   }
 
-  const addNotification = (message: string, type: 'success' | 'error' | 'info') => {
-    const newNotification = {
-      id: Date.now(),
-      message,
-      type
-    }
-    setNotifications(prev => [...prev, newNotification])
+  const addNotification = (message: string, type: "success" | "error" | "info") => {
+    const newNotification = { id: Date.now(), message, type }
+    setNotifications((prev) => [...prev, newNotification])
     setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== newNotification.id))
+      setNotifications((prev) => prev.filter((n) => n.id !== newNotification.id))
     }, 5000)
   }
 
   const removeNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
+    setNotifications((prev) => prev.filter((n) => n.id !== id))
   }
 
-  const addAsset = () => {
+  const convertAssetToDBFormat = (asset: typeof newAsset) => ({
+    ...asset,
+    value: asset.value.toString(),
+    authenticity: asset.authenticity.toString(),
+    confidentiality: asset.confidentiality.toString(),
+    integrity: asset.integrity.toString(),
+    availability: asset.availability.toString(),
+    traceability: asset.traceability.toString(),
+  })
+
+  const addAsset = async () => {
     if (newAsset.code && newAsset.name && newAsset.type) {
-      setAssets([...assets, { ...newAsset, id: Date.now() }])
-      setNewAsset({
-        code: '',
-        name: '',
-        type: '',
-        value: 0,
-        authenticity: 0,
-        confidentiality: 0,
-        integrity: 0,
-        availability: 0,
-        traceability: 0
-      })
-      addNotification('Activo añadido con éxito', 'success')
+      const response = await addAssetDB(convertAssetToDBFormat(newAsset))
+      if (response.success) {
+        setAssets([...assets, { ...newAsset, id: response.id }])
+        setNewAsset({
+          code: "",
+          name: "",
+          type: "",
+          value: 100000,
+          authenticity: 0,
+          confidentiality: 0,
+          integrity: 0,
+          availability: 0,
+          traceability: 0,
+        })
+        addNotification("Activo añadido con éxito", "success")
+      } else {
+        addNotification(response.error || "Error al añadir activo", "error")
+      }
     } else {
-      addNotification('Por favor, complete todos los campos requeridos', 'error')
+      addNotification("Por favor, complete todos los campos requeridos", "error")
     }
   }
 
-  const addThreat = () => {
+  const convertThreatToDBFormat = (threat: typeof newThreat) => ({
+    ...threat,
+    frequencyValue: threat.frequencyValue.toString(),
+  })
+
+  const addThreat = async () => {
     if (newThreat.code && newThreat.name && newThreat.group && newThreat.frequency) {
-      setThreats([...threats, { ...newThreat, id: Date.now() }])
-      setNewThreat({
-        code: '',
-        name: '',
-        group: '',
-        frequency: '',
-        frequencyValue: 0,
-        affectedDimensions: [],
-        affectedTypes: []
-      })
-      addNotification('Amenaza añadida con éxito', 'success')
+      const response = await addThreatDB(convertThreatToDBFormat(newThreat))
+      if (response.success) {
+        setThreats([...threats, { ...newThreat, id: response.id }])
+        setNewThreat({
+          code: "",
+          name: "",
+          group: "",
+          frequency: "",
+          frequencyValue: 0,
+          affectedDimensions: [],
+          affectedTypes: [],
+        })
+        addNotification("Amenaza añadida con éxito", "success")
+      } else {
+        addNotification(response.error || "Error al añadir amenaza", "error")
+      }
     } else {
-      addNotification('Por favor, complete todos los campos requeridos', 'error')
+      addNotification("Por favor, complete todos los campos requeridos", "error")
     }
   }
 
-  const calculateRisks = (asset: Asset, threat: Threat, impactPercentage: number) => {
-    const intrinsicRisk = asset.value * threat.frequencyValue * (impactPercentage / 100)
-    const residualRisk = intrinsicRisk * (1 - controlEffectiveness / 100)
-    return { intrinsicRisk, residualRisk }
-  }
+  const convertAssessmentToDBFormat = (assessment: Assessment) => ({
+    ...assessment,
+    assetId: assessment.assetId.toString(),
+    threatId: assessment.threatId.toString(),
+    intrinsicRisk: assessment.intrinsicRisk.toString(),
+    residualRisk: assessment.residualRisk.toString(),
+    impactValue: assessment.impactValue.toString(),
+    controlEffectiveness: assessment.controlEffectiveness.toString(),
+  })
 
-  const addAssessment = () => {
-    const asset = assets.find(a => a.code === selectedAsset)
-    const threat = threats.find(t => t.code === selectedThreat)
+  const addAssessment = async () => {
+    const asset = assets.find((a) => a.code === selectedAsset)
+    const threat = threats.find((t) => t.code === selectedThreat)
     if (asset && threat && selectedImpact) {
-      const impactValue = impactLevels.find(i => i.value === selectedImpact)?.percentage || 0
+      const impactValue = impactLevels.find((i) => i.value === selectedImpact)?.percentage || 0
       const { intrinsicRisk, residualRisk } = calculateRisks(asset, threat, impactValue)
 
       const newAssessment = {
@@ -242,25 +257,36 @@ export default function MAGERITAssessment() {
         controlEffectiveness,
         intrinsicRisk,
         residualRisk,
-        date: format(new Date(), 'yyyy-MM-dd', { locale: es })
+        date: format(new Date(), "yyyy-MM-dd", { locale: es }),
       }
-
-      setAssessments([...assessments, newAssessment])
-      setSelectedAsset('')
-      setSelectedThreat('')
-      setSelectedImpact('')
-      setControlEffectiveness(0)
-      addNotification('Evaluación de riesgo añadida con éxito', 'success')
+      
+      const response = await addAssessmentDB(convertAssessmentToDBFormat(newAssessment))
+      if (response.success) {
+        setAssessments([...assessments, { ...newAssessment, id: response.id }])
+        setSelectedAsset("")
+        setSelectedThreat("")
+        setSelectedImpact("")
+        setControlEffectiveness(0)
+        addNotification("Evaluación de riesgo añadida con éxito", "success")
+      } else {
+        addNotification(response.error || "Error al añadir evaluación", "error")
+      }
     } else {
-      addNotification('Por favor, seleccione un activo, una amenaza y un impacto', 'error')
+      addNotification("Por favor, seleccione un activo, una amenaza y un impacto", "error")
     }
   }
 
+  const calculateRisks = (asset: Asset, threat: Threat, impactPercentage: number) => {
+    const intrinsicRisk = asset.value * threat.frequencyValue * (impactPercentage / 100)
+    const residualRisk = intrinsicRisk * (1 - controlEffectiveness / 100)
+    return { intrinsicRisk, residualRisk }
+  }
+
   const getRiskColor = (risk: number) => {
-    if (risk < 1000000) return 'text-green-500'
-    if (risk < 5000000) return 'text-yellow-500'
-    if (risk < 10000000) return 'text-orange-500'
-    return 'text-red-500'
+    if (risk < 1000000) return "text-green-500"
+    if (risk < 5000000) return "text-yellow-500"
+    if (risk < 10000000) return "text-orange-500"
+    return "text-red-500"
   }
 
   const getRiskIcon = (risk: number) => {
@@ -281,13 +307,13 @@ export default function MAGERITAssessment() {
 
     let yPos = 40
     assessments.forEach((assessment) => {
-      const asset = assets.find(a => a.id === assessment.assetId)
-      const threat = threats.find(t => t.id === assessment.threatId)
+      const asset = assets.find((a) => a.id === assessment.assetId)
+      const threat = threats.find((t) => t.id === assessment.threatId)
 
       doc.text(`Fecha: ${assessment.date}`, 20, yPos)
       doc.text(`Activo: ${asset?.name} (${asset?.code})`, 20, yPos + 10)
       doc.text(`Amenaza: ${threat?.name} (${threat?.code})`, 20, yPos + 20)
-      doc.text(`Impacto: ${impactLevels.find(i => i.value === assessment.impact)?.label}`, 20, yPos + 30)
+      doc.text(`Impacto: ${impactLevels.find((i) => i.value === assessment.impact)?.label}`, 20, yPos + 30)
       doc.text(`Riesgo Intrínseco: ${formatCurrency(assessment.intrinsicRisk)}`, 20, yPos + 40)
       doc.text(`Efectividad del Control: ${assessment.controlEffectiveness}%`, 20, yPos + 50)
       doc.text(`Riesgo Residual: ${formatCurrency(assessment.residualRisk)}`, 20, yPos + 60)
@@ -300,71 +326,31 @@ export default function MAGERITAssessment() {
       }
     })
 
-    doc.save('informe_evaluacion_riesgos_magerit.pdf')
-    addNotification('Informe PDF descargado con éxito', 'success')
+    doc.save("informe_evaluacion_riesgos_magerit.pdf")
+    addNotification("Informe PDF descargado con éxito", "success")
   }
 
-
   useEffect(() => {
-    setAssets([
-      {
-        id: 1,
-        code: 'R01',
-        name: '[lan] Red LAN',
-        type: 'hardware',
-        value: 20000000,
-        authenticity: 8,
-        confidentiality: 9,
-        integrity: 9,
-        availability: 10,
-        traceability: 7
-      },
-      {
-        id: 2,
-        code: 'SW01',
-        name: 'Sistema ERP',
-        type: 'software',
-        value: 50000000,
-        authenticity: 10,
-        confidentiality: 10,
-        integrity: 10,
-        availability: 9,
-        traceability: 9
-      }
-    ])
+    async function loadData() {
+      try {
+        const assetsResponse = await fetchAssets()
+        const threatsResponse = await fetchThreats()
+        const assessmentsResponse = await fetchAssessments()
 
-    setThreats([
-      {
-        id: 1,
-        code: 'ON02',
-        name: 'Incendio',
-        group: 'natural',
-        frequency: 'FMA',
-        frequencyValue: 1.0,
-        affectedDimensions: ['D'],
-        affectedTypes: ['H', 'S']
-      },
-      {
-        id: 2,
-        code: 'OI01',
-        name: 'Sobrecarga de voltaje',
-        group: 'industrial',
-        frequency: 'FM',
-        frequencyValue: 0.016,
-        affectedDimensions: ['D'],
-        affectedTypes: ['H']
-      },
-      {
-        id: 3,
-        code: 'AI02',
-        name: 'Ransomware',
-        group: 'ataque',
-        frequency: 'FA',
-        frequencyValue: 0.071,
-        affectedDimensions: ['C', 'I'],
-        affectedTypes: ['S']
+        if (assetsResponse.success && threatsResponse.success && assessmentsResponse.success) {
+          setAssets(assetsResponse.assets as Asset[])
+          setAssessments(assessmentsResponse.assessments as Assessment[])
+          setThreats(threatsResponse.threats as Threat[])
+        } else {
+          addNotification(assetsResponse.error || threatsResponse.error || assessmentsResponse.error || "Failed to load data", "error")
+        }
+      } catch (error) {
+        addNotification("An unexpected error occurred", "error")
+        console.error("Data loading error:", error)
       }
-    ])
+    }
+
+    loadData()
   }, [])
 
   return (
@@ -379,15 +365,16 @@ export default function MAGERITAssessment() {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`mb-2 p-4 rounded-md shadow-md flex justify-between items-center ${notification.type === 'success' ? 'bg-green-500' :
-                  notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-                  } text-white`}
+                className={`mb-2 p-4 rounded-md shadow-md flex justify-between items-center ${
+                  notification.type === "success"
+                    ? "bg-green-500"
+                    : notification.type === "error"
+                    ? "bg-red-500"
+                    : "bg-blue-500"
+                } text-white`}
               >
                 <span>{notification.message}</span>
-                <button
-                  onClick={() => removeNotification(notification.id)}
-                  className="ml-2 text-white hover:text-gray-200"
-                >
+                <button onClick={() => removeNotification(notification.id)} className="ml-2 text-white hover:text-gray-200">
                   <X size={18} />
                 </button>
               </div>
@@ -404,35 +391,24 @@ export default function MAGERITAssessment() {
                       <div className="flex items-center justify-between p-3">
                         <div className="flex items-center gap-3">
                           {(() => {
-                            const item = menuItems.find(item => item.value === selectedTab);
-                            const Icon = item?.icon;
-                            return Icon && <Icon className="w-6 h-6 text-primary" />;
+                            const item = menuItems.find((item) => item.value === selectedTab)
+                            const Icon = item?.icon
+                            return Icon && <Icon className="w-6 h-6 text-primary" />
                           })()}
                           <span className="text-base font-medium capitalize">
-                            {menuItems.find(item => item.value === selectedTab)?.label}
+                            {menuItems.find((item) => item.value === selectedTab)?.label}
                           </span>
                         </div>
                       </div>
                     </SelectTrigger>
-                    <SelectContent
-                      className="w-[calc(100vw-2rem)] mx-4 bg-white border shadow-lg rounded-lg"
-                      align="center"
-                    >
+                    <SelectContent className="w-[calc(100vw-2rem)] mx-4 bg-white border shadow-lg rounded-lg" align="center">
                       {menuItems.map(({ value, label, icon: Icon, description }) => (
-                        <SelectItem
-                          key={value}
-                          value={value}
-                          className="border-b last:border-b-0"
-                        >
+                        <SelectItem key={value} value={value} className="border-b last:border-b-0">
                           <div className="flex items-start gap-3 py-3 px-3">
                             <Icon className="w-6 h-6 text-primary mt-0.5" />
                             <div className="flex flex-col">
-                              <span className="text-base font-medium">
-                                {label}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {description}
-                              </span>
+                              <span className="text-base font-medium">{label}</span>
+                              <span className="text-sm text-muted-foreground">{description}</span>
                             </div>
                           </div>
                         </SelectItem>
@@ -446,11 +422,7 @@ export default function MAGERITAssessment() {
                   <div className="flex flex-col items-center justify-center">
                     <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground w-full sm:w-auto">
                       {menuItems.map(({ value, label, icon: Icon }) => (
-                        <TabsTrigger
-                          key={value}
-                          value={value}
-                          className="data-[state=active]:bg-background"
-                        >
+                        <TabsTrigger key={value} value={value} className="data-[state=active]:bg-background">
                           <Icon className="w-4 h-4 mr-2" />
                           {label}
                         </TabsTrigger>
@@ -493,10 +465,7 @@ export default function MAGERITAssessment() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <Label htmlFor="assetType">Tipo de Activo</Label>
-                          <Select
-                            value={newAsset.type}
-                            onValueChange={(value) => setNewAsset({ ...newAsset, type: value })}
-                          >
+                          <Select value={newAsset.type} onValueChange={(value) => setNewAsset({ ...newAsset, type: value })}>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione tipo" />
                             </SelectTrigger>
@@ -600,11 +569,10 @@ export default function MAGERITAssessment() {
                               <TableRow key={asset.id}>
                                 <TableCell>{asset.code}</TableCell>
                                 <TableCell>{asset.name}</TableCell>
-                                <TableCell>{assetTypes.find(t => t.value === asset.type)?.label}</TableCell>
+                                <TableCell>{assetTypes.find((t) => t.value === asset.type)?.label}</TableCell>
                                 <TableCell>{formatCurrency(asset.value)}</TableCell>
                                 <TableCell>
-                                  {((asset.authenticity + asset.confidentiality + asset.integrity +
-                                    asset.availability + asset.traceability) / 5).toFixed(2)}
+                                  {((asset.authenticity + asset.confidentiality + asset.integrity + asset.availability + asset.traceability) / 5).toFixed(2)}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -649,10 +617,7 @@ export default function MAGERITAssessment() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                           <Label htmlFor="threatGroup">Grupo de Amenaza</Label>
-                          <Select
-                            value={newThreat.group}
-                            onValueChange={(value) => setNewThreat({ ...newThreat, group: value })}
-                          >
+                          <Select value={newThreat.group} onValueChange={(value) => setNewThreat({ ...newThreat, group: value })}>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione grupo" />
                             </SelectTrigger>
@@ -670,11 +635,11 @@ export default function MAGERITAssessment() {
                           <Select
                             value={newThreat.frequency}
                             onValueChange={(value) => {
-                              const frequencyObj = frequencies.find(f => f.value === value)
+                              const frequencyObj = frequencies.find((f) => f.value === value)
                               setNewThreat({
                                 ...newThreat,
                                 frequency: value,
-                                frequencyValue: frequencyObj ? frequencyObj.numericValue : 0
+                                frequencyValue: frequencyObj ? frequencyObj.numericValue : 0,
                               })
                             }}
                           >
@@ -717,7 +682,7 @@ export default function MAGERITAssessment() {
                                         onCheckedChange={(checked) => {
                                           const dims = checked
                                             ? [...newThreat.affectedDimensions, key]
-                                            : newThreat.affectedDimensions.filter(d => d !== key)
+                                            : newThreat.affectedDimensions.filter((d) => d !== key)
                                           setNewThreat({ ...newThreat, affectedDimensions: dims })
                                         }}
                                       />
@@ -760,7 +725,7 @@ export default function MAGERITAssessment() {
                                         onCheckedChange={(checked) => {
                                           const types = checked
                                             ? [...newThreat.affectedTypes, key]
-                                            : newThreat.affectedTypes.filter(t => t !== key)
+                                            : newThreat.affectedTypes.filter((t) => t !== key)
                                           setNewThreat({ ...newThreat, affectedTypes: types })
                                         }}
                                       />
@@ -803,10 +768,12 @@ export default function MAGERITAssessment() {
                               <TableRow key={threat.id}>
                                 <TableCell>{threat.code}</TableCell>
                                 <TableCell>{threat.name}</TableCell>
-                                <TableCell>{threatGroups.find(g => g.value === threat.group)?.label}</TableCell>
-                                <TableCell>{frequencies.find(f => f.value === threat.frequency)?.label} ({threat.frequencyValue})</TableCell>
-                                <TableCell>{threat.affectedDimensions.join(', ')}</TableCell>
-                                <TableCell>{threat.affectedTypes.join(', ')}</TableCell>
+                                <TableCell>{threatGroups.find((g) => g.value === threat.group)?.label}</TableCell>
+                                <TableCell>
+                                  {frequencies.find((f) => f.value === threat.frequency)?.label} ({threat.frequencyValue})
+                                </TableCell>
+                                <TableCell>{threat.affectedDimensions.join(", ")}</TableCell>
+                                <TableCell>{threat.affectedTypes.join(", ")}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -829,10 +796,7 @@ export default function MAGERITAssessment() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                           <Label htmlFor="assessmentAsset">Activo</Label>
-                          <Select
-                            value={selectedAsset}
-                            onValueChange={setSelectedAsset}
-                          >
+                          <Select value={selectedAsset} onValueChange={setSelectedAsset}>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione activo" />
                             </SelectTrigger>
@@ -847,10 +811,7 @@ export default function MAGERITAssessment() {
                         </div>
                         <div>
                           <Label htmlFor="assessmentThreat">Amenaza</Label>
-                          <Select
-                            value={selectedThreat}
-                            onValueChange={setSelectedThreat}
-                          >
+                          <Select value={selectedThreat} onValueChange={setSelectedThreat}>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione amenaza" />
                             </SelectTrigger>
@@ -865,10 +826,7 @@ export default function MAGERITAssessment() {
                         </div>
                         <div>
                           <Label htmlFor="impact">Impacto</Label>
-                          <Select
-                            value={selectedImpact}
-                            onValueChange={setSelectedImpact}
-                          >
+                          <Select value={selectedImpact} onValueChange={setSelectedImpact}>
                             <SelectTrigger>
                               <SelectValue placeholder="Seleccione impacto" />
                             </SelectTrigger>
@@ -884,7 +842,9 @@ export default function MAGERITAssessment() {
                       </div>
 
                       <div className="mb-4">
-                        <Label htmlFor="controlEffectiveness" className="mb-2 block">Efectividad del Control (%)</Label>
+                        <Label htmlFor="controlEffectiveness" className="mb-2 block">
+                          Efectividad del Control (%)
+                        </Label>
                         <div className="flex items-center space-x-4">
                           <Slider
                             id="controlEffectiveness"
@@ -920,15 +880,19 @@ export default function MAGERITAssessment() {
                           </TableHeader>
                           <TableBody>
                             {assessments.map((assessment) => {
-                              const asset = assets.find(a => a.id === assessment.assetId)
-                              const threat = threats.find(t => t.id === assessment.threatId)
+                              const asset = assets.find((a) => a.id === assessment.assetId)
+                              const threat = threats.find((t) => t.id === assessment.threatId)
                               return (
                                 <TableRow key={assessment.id}>
                                   <TableCell>{asset?.name}</TableCell>
                                   <TableCell>{formatCurrency(asset?.value || 0)}</TableCell>
                                   <TableCell>{threat?.name}</TableCell>
-                                  <TableCell>{threat?.frequency} ({threat?.frequencyValue})</TableCell>
-                                  <TableCell>{impactLevels.find(i => i.value === assessment.impact)?.label} ({assessment.impactValue}%)</TableCell>
+                                  <TableCell>
+                                    {threat?.frequency} ({threat?.frequencyValue})
+                                  </TableCell>
+                                  <TableCell>
+                                    {impactLevels.find((i) => i.value === assessment.impact)?.label} ({assessment.impactValue}%)
+                                  </TableCell>
                                   <TableCell className={getRiskColor(assessment.intrinsicRisk)}>
                                     {getRiskIcon(assessment.intrinsicRisk)}
                                     {formatCurrency(assessment.intrinsicRisk)}
@@ -982,7 +946,7 @@ export default function MAGERITAssessment() {
                           <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={assessments}>
                               <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis  />
+                              <XAxis />
                               <YAxis />
                               <Tooltip />
                               <Legend />
@@ -997,10 +961,16 @@ export default function MAGERITAssessment() {
                             <PieChart>
                               <Pie
                                 data={[
-                                  { name: 'Bajo', value: assessments.filter(a => a.residualRisk < 1000000).length },
-                                  { name: 'Medio', value: assessments.filter(a => a.residualRisk >= 1000000 && a.residualRisk < 5000000).length },
-                                  { name: 'Alto', value: assessments.filter(a => a.residualRisk >= 5000000 && a.residualRisk < 10000000).length },
-                                  { name: 'Crítico', value: assessments.filter(a => a.residualRisk >= 10000000).length },
+                                  { name: "Bajo", value: assessments.filter((a) => a.residualRisk < 1000000).length },
+                                  {
+                                    name: "Medio",
+                                    value: assessments.filter((a) => a.residualRisk >= 1000000 && a.residualRisk < 5000000).length,
+                                  },
+                                  {
+                                    name: "Alto",
+                                    value: assessments.filter((a) => a.residualRisk >= 5000000 && a.residualRisk < 10000000).length,
+                                  },
+                                  { name: "Crítico", value: assessments.filter((a) => a.residualRisk >= 10000000).length },
                                 ]}
                                 cx="50%"
                                 cy="50%"
@@ -1047,8 +1017,8 @@ export default function MAGERITAssessment() {
                           </TableHeader>
                           <TableBody>
                             {assessments.map((assessment) => {
-                              const asset = assets.find(a => a.id === assessment.assetId)
-                              const threat = threats.find(t => t.id === assessment.threatId)
+                              const asset = assets.find((a) => a.id === assessment.assetId)
+                              const threat = threats.find((t) => t.id === assessment.threatId)
                               return (
                                 <TableRow key={assessment.id}>
                                   <TableCell>{assessment.date}</TableCell>
