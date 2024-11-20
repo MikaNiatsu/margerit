@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
     const secret = textEncoder.encode(process.env.JWT_SECRET!)
     
     // Verify the token using jose instead of jsonwebtoken
-    const { payload } = await jwtVerify(token, secret)
+    await jwtVerify(token, secret)
     
     return NextResponse.next()
   } catch (error) {
