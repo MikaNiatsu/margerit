@@ -281,9 +281,13 @@ export default function MAGERITAssessment() {
     }
   }
 
-  const calculateRisks = (asset: Asset, threat: Threat, impactPercentage: number) => {
-    const intrinsicRisk = asset.value * threat.frequencyValue * (impactPercentage / 100)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const calculateRisks = (asset: Asset, threat: any, impactPercentage: number) => {
+    
+    const intrinsicRisk = asset.value * threat.frequency_value * (impactPercentage / 100)
+    console.log(intrinsicRisk , "intrinsicRisk") 
     const residualRisk = intrinsicRisk * (1 - controlEffectiveness / 100)
+    console.log(residualRisk, "residualRisk")
     return { intrinsicRisk, residualRisk }
   }
 
@@ -361,9 +365,9 @@ export default function MAGERITAssessment() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <TooltipProvider>
-        <header className="bg-primary text-primary-foreground p-4 shadow-md">
-          <h1 className="text-3xl font-bold text-center">Herramienta de Evaluación de Riesgos MAGERIT</h1>
-          <div className="absolute top-0 right-0 p-2">
+        <header className="bg-primary text-primary-foreground p-4 shadow-md md:flex md:items-center md:justify-between">
+          <h1 className="text-3xl font-bold text-center md:text-left">Herramienta de Evaluación de Riesgos MAGERIT</h1>
+          <div className="absolute top-0 right-0 p-2 md:static md:p-0">
             <Button variant="destructive" size="sm" onClick={logoutHandler}>
               Cerrar sesión
             </Button>
