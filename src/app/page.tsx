@@ -784,7 +784,7 @@ export default function MAGERITAssessment() {
                                 <TableCell>{threat.name}</TableCell>
                                 <TableCell>{threatGroups.find((g) => g.value === threat.group)?.label}</TableCell>
                                 <TableCell>
-                                  {frequencies.find((f) => f.value === threat.frequency)?.label} ({threat.frequencyValue})
+                                  {frequencies.find((f) => f.value === threat.frequency)?.label} 
                                 </TableCell>
                                 <TableCell>{threat.affectedDimensions.join(", ")}</TableCell>
                                 <TableCell>{threat.affectedTypes.join(", ")}</TableCell>
