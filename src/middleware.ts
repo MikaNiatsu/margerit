@@ -9,8 +9,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value
   const pathname = request.nextUrl.pathname
 
-  console.log('Middleware triggered for pathname:', pathname)
-  console.log('Token present:', !!token)
+
 
   // Exclude static files, API routes, and login page from authentication check
   if (
@@ -19,12 +18,10 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.includes('.')
   ) {
-    console.log('Excluded path, proceeding without check')
     return NextResponse.next()
   }
 
   if (!token) {
-    console.log('No token found, redirecting to login')
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
@@ -34,7 +31,6 @@ export async function middleware(request: NextRequest) {
     
     // Verify the token using jose instead of jsonwebtoken
     const { payload } = await jwtVerify(token, secret)
-    console.log('Token verified successfully:', payload)
     
     return NextResponse.next()
   } catch (error) {

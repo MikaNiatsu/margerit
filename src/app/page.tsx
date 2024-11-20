@@ -346,7 +346,6 @@ export default function MAGERITAssessment() {
           setAssets(assetsResponse.assets as Asset[])
           setAssessments(assessmentsResponse.assessments as Assessment[])
           setThreats(threatsResponse.threats as Threat[])
-          console.log(assetsResponse, threatsResponse, assessmentsResponse)
         } else {
           addNotification(assetsResponse.error || threatsResponse.error || assessmentsResponse.error || "Failed to load data", "error")
         }
@@ -899,7 +898,7 @@ export default function MAGERITAssessment() {
                                   <TableCell>{formatCurrency(asset?.value || 0)}</TableCell>
                                   <TableCell>{threat?.name}</TableCell>
                                   <TableCell>
-                                    {threat?.frequency} ({threat?.frequencyValue})
+                                    {threat?.frequency}
                                   </TableCell>
                                   <TableCell>
                                     {impactLevels.find((i) => i.value === assessment.impact)?.label} ({assessment.impactValue}%)

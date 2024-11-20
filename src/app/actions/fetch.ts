@@ -162,7 +162,20 @@ export async function fetchAssessments() {
                 created_at
             FROM assessments
         `;
-    return { success: true, assessments };
+    return { 
+      success: true, 
+      assessments: assessments.map((assessment) => ({
+        id: assessment.id,
+        assetId: assessment.asset_id,
+        threatId: assessment.threat_id,
+        impact: assessment.impact,
+        impactValue: assessment.impact_value,
+        controlEffectiveness: assessment.control_effectiveness,
+        intrinsicRisk: assessment.intrinsic_risk,
+        residualRisk: assessment.residual_risk,
+        date: assessment.date,
+      })) 
+    };
   } catch (error) {
     console.error("Error fetching assessments:", error);
     return { success: false, error: "Failed to fetch assessments" };
